@@ -1,0 +1,36 @@
+- name: "1"
+  length: 300.0
+  limit: 30.0
+  reverse: "6"
+  next_tracks:
+  - "2"
+- name: "2"
+  length: 700.0
+  limit: 70.0
+  reverse: "-1"
+  next_tracks:
+  - "3"
+- name: "3"
+  length: 300.0
+  limit: 30.0
+  reverse: "4"
+  next_tracks:
+  - "-1"
+- name: "4"
+  length: 300.0
+  limit: 30.0
+  reverse: "3"
+  next_tracks:
+  - "5"
+- name: "5"
+  length: 700.0
+  limit: 70.0
+  reverse: "-1"
+  next_tracks:
+  - "6"
+- name: "6"
+  length: 300.0
+  limit: 30.0
+  reverse: "1"
+  next_tracks:
+  - "-1"
