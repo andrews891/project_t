@@ -12,5 +12,5 @@ I'm unsure on the direction this project will take, but it currently serves as a
 
 
 # Demo
-(10x speed) \\
+(10x speed)  
 ![demo](https://github.com/andrews891/project_t/assets/72918393/2e3658ae-1654-49c0-9818-38894d9ef031)
