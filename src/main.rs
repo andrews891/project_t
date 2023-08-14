@@ -34,7 +34,7 @@ async fn main() {
 
     let duration = 4000.0;
     let time_step = 0.01;
-    let speedup = 400.0;
+    let speedup = 20.0;
 
     let mut time_elapsed = 0.0;
 
@@ -56,7 +56,7 @@ async fn main() {
 
             term.clear_screen().unwrap();
 
-            term.write_line(&format!("Time: {:>9.2}", time_elapsed)).unwrap();
+            term.write_line(&format!("Time: {:>9.2}s", time_elapsed)).unwrap();
 
             let mut train_locations = Vec::<(&str, &str)>::new();
 

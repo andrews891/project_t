@@ -35,7 +35,8 @@ fn init_network<'a>() -> DiGraphMap::<&'a str, Arc<Mutex<Block<'a>>>> {
     network.add_edge("F", "A", Arc::new(Mutex::new(Block::new_track(4000, 125, Signal::new()))));
     network.add_edge("A", "B", Arc::new(Mutex::new(Block::new_track(4000, 125, Signal::new()))));
     network.add_edge("B", "C", Arc::new(Mutex::new(Block::new_track(4000, 60, Signal::new()))));
-    network.add_edge("C", "D", Arc::new(Mutex::new(Block::new_station(4000, 30, vec![Platform::new(Signal::new(), 1000)]))));
+    network.add_edge("C", "D", Arc::new(Mutex::new(Block::new_track(4000, 60, Signal::new()))));
+    //network.add_edge("C", "D", Arc::new(Mutex::new(Block::new_station(4000, 30, vec![Platform::new(Signal::new(), 1000)]))));
     network.add_edge("D", "E", Arc::new(Mutex::new(Block::new_track(4000, 125, Signal::new()))));
     network.add_edge("E", "F", Arc::new(Mutex::new(Block::new_track(4000, 125, Signal::new()))));
 
