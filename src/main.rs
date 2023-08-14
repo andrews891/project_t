@@ -5,10 +5,12 @@ mod simulation;
 mod signaller;
 mod signal;
 mod io;
+mod block;
 
 use crate::train::*;
 use crate::surface::*;
 use crate::simulation::*;
+use crate::signal::*;
 use conversion::convert_to_mps;
 use tokio::{task, time};
 use crate::signal::SignalColour;
@@ -28,62 +30,68 @@ async fn main() {
 
     let mut simulation = Simulation::new();
 
+    dbg!();
+
     let duration = 4000.0;
     let time_step = 0.01;
-    let speedup = 25.0;
+    let speedup = 400.0;
 
     let mut time_elapsed = 0.0;
 
-    let mut interval = time::interval(time::Duration::from_secs_f32(time_step / speedup));
-    
-    simulation.signaller.propagate_signal("I", "SIGNALLER", SignalColour::Red);
+    let mut ticks = (speedup - 1.0) as u32;
 
-    dbg!(&simulation);
+    let mut interval = time::interval(time::Duration::from_secs_f32(time_step / speedup));
+
+    println!("Initialised");
     
     while time_elapsed < duration {
+        ticks += 1;
+
         interval.tick().await;
-        simulation.time_step(time_step);
 
-        term.clear_screen().unwrap();
+        simulation.time_step(time_step, time_elapsed);
 
-        term.write_line(&format!("Time: {:>9.2}", time_elapsed)).unwrap();
+        if ticks == speedup as u32 {
+            ticks = 0;
 
-        let mut train_locations = Vec::<(&str, &str)>::new();
+            term.clear_screen().unwrap();
 
-        for train in &simulation.signaller.trains {
-            term.write_line(&format!("{:>8} | {} ({}) |", train.0.name, train.0, train.2)).unwrap();
-            train_locations.push((&train.0.name, train.2));
-        }
+            term.write_line(&format!("Time: {:>9.2}", time_elapsed)).unwrap();
 
-        for signal in simulation.signaller.network.all_edges() {
-            let colour: &Style;
-            let mut train: &str = "";
-            
-            match signal.2.lock().unwrap().colour {
-                SignalColour::Red => colour = &r,
-                SignalColour::DoubleYellow => colour = &dy,
-                SignalColour::Yellow => colour = &y,
-                SignalColour::Green => colour = &g,
+            let mut train_locations = Vec::<(&str, &str)>::new();
+
+            for train in &simulation.signaller.trains {
+                term.write_line(&format!("{:>8} | {} |", train.0.name, train.0)).unwrap();
+                train_locations.push((&train.0.name, train.2));
             }
-
-            for loc in &train_locations {
-                if loc.1 == signal.1 {
-                    train = loc.0;
+    
+            for block in simulation.signaller.network.all_edges() {
+                let mut colour: &Style = &r;
+                let mut train: &str = "";
+                
+                match &block.2.lock().unwrap().block_type {
+                    block::BlockType::Track { signal } => {
+                        match signal.colour {
+                            SignalColour::Red => colour = &r,
+                            SignalColour::DoubleYellow => colour = &dy,
+                            SignalColour::Yellow => colour = &y,
+                            SignalColour::Green => colour = &g,
+                        }
+                    },
+                    block::BlockType::Station { platforms } => {
+                        todo!();
+                    },
                 }
+    
+                for loc in &train_locations {
+                    if loc.1 == block.1 {
+                        train = loc.0;
+                    }
+                }
+    
+                term.write_str(&format!("{:>7} {} ", train, colour.apply_to(block.1))).unwrap();
             }
-
-            term.write_str(&format!("{:>7} {} ", train, colour.apply_to(signal.1))).unwrap();
         }
-
-        // term.write_line(&format!("{}",
-        // simulation.signaller.network.edge_weight("A", "B").unwrap().lock().unwrap().colour,
-        // simulation.signaller.network.edge_weight("B", "C").unwrap().lock().unwrap().colour,
-        // simulation.signaller.network.edge_weight("C", "D").unwrap().lock().unwrap().colour,
-        // simulation.signaller.network.edge_weight("D", "E").unwrap().lock().unwrap().colour,
-        // simulation.signaller.network.edge_weight("E", "F").unwrap().lock().unwrap().colour,
-        // simulation.signaller.network.edge_weight("F", "G").unwrap().lock().unwrap().colour,
-        // simulation.signaller.network.edge_weight("G", "H").unwrap().lock().unwrap().colour,
-        // simulation.signaller.network.edge_weight("H", "I").unwrap().lock().unwrap().colour)).unwrap();
         
         time_elapsed += time_step;
     }

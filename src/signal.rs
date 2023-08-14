@@ -3,8 +3,8 @@ use std::{cmp::Ordering, hash::*};
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, PartialOrd, Ord)]
 pub enum SignalColour {
     Red,
-    DoubleYellow,
     Yellow,
+    DoubleYellow,
     Green
 }
 
@@ -12,29 +12,84 @@ impl SignalColour {
     pub fn next(&self) -> Self {
         use SignalColour::*;
         match *self {
-            Red => DoubleYellow,
-            DoubleYellow => Yellow,
-            Yellow => Green,
+            Red => Yellow,
+            Yellow => DoubleYellow,
+            DoubleYellow => Green,
             Green => Green,
         }
     }
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Hash)]
+pub enum Owner <'a> {
+    Signaller,
+    Train {id: &'a str}
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Copy, Clone, Hash)]
 pub struct Signal<'a> {
-    pub block_length: u32,
-    pub block_limit: u32,
     pub colour: SignalColour,
-    pub train: Option<&'a str>,
+    pub owner: Owner<'a>,
 }
 
 impl<'a> Signal <'a> {
-    pub fn new(block_length: u32, block_limit: u32) -> Self {
+    pub fn new() -> Self {
         return Signal {
-            block_length: block_length,
-            block_limit: block_limit,
             colour: SignalColour::Green,
-            train: None,
+            owner: Owner::Signaller,
+        }
+    }
+
+    pub fn update(&mut self, owner: Owner <'a>, colour: SignalColour) -> bool {
+        match self.owner {
+            Owner::Signaller => {
+                match owner {
+                    Owner::Signaller => {
+                        self.colour = colour;
+                        colour != SignalColour::Green
+                    },
+                    Owner::Train { id: _ } => {
+                        if self.colour > colour {
+                            self.owner = owner;
+                            self.colour = colour;
+                            colour != SignalColour::Green
+                        }
+                        else {
+                            false
+                        }
+                    },
+                }
+            },
+            Owner::Train { id: self_id } => {
+                match owner {
+                    Owner::Signaller => {
+                        if self.colour >= colour {
+                            self.owner = owner;
+                            self.colour = colour;
+                            colour != SignalColour::Green
+                        }
+                        else {
+                            false
+                        }
+                    },
+                    Owner::Train { id: other_id } => {
+                        if self_id == other_id {
+                            self.colour = colour;
+                            colour != SignalColour::Green
+                        }
+                        else {
+                            if self.colour > colour {
+                                self.owner = owner;
+                                self.colour = colour;
+                                colour != SignalColour::Green
+                            }
+                            else {
+                                false
+                            }
+                        }
+                    },
+                }
+            },
         }
     }
 }

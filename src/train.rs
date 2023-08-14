@@ -3,13 +3,13 @@ use crate::{conversion::*, GRAVITY};
 #[macro_export]
 macro_rules! class802 {
     ($name:expr) => {
-        Train::new(stringify!($name).to_owned(), 300000.0, 700000, 3, 2.5, 3.5, 1.0)
+        Train::new($name, 300000.0, 700000, 3, 2.5, 3.5, 1.0)
     };
 }
 
 #[derive(Debug)]
-pub struct Train {
-    pub name: String,
+pub struct Train <'a> {
+    pub name: &'a str,
     mass: f32,
     power: u32,
     axle_resistance: f32,
@@ -28,8 +28,8 @@ pub struct Train {
     emergency: bool,
 }
 
-impl Train {
-    pub fn new(name: String, mass: f32, power: u32, engines: u32, width: f32, height: f32, acceleration: f32) -> Self {
+impl <'a> Train <'a> {
+    pub fn new(name: &'a str, mass: f32, power: u32, engines: u32, width: f32, height: f32, acceleration: f32) -> Self {
         return Train {
             name: name,
             mass: mass,
@@ -51,8 +51,8 @@ impl Train {
         }
     }
 
-    pub fn update(&mut self, delta_time: f32, control: bool) {
-        if !self.emergency && control {
+    pub fn update(&mut self, delta_time: f32) {
+        if !self.emergency {
             self.control();
         }
         else {
@@ -79,35 +79,26 @@ impl Train {
     }
 
     fn control(&mut self) {
-        if self.target_distance < 0.0 { // immediate + emergency brake
-            dbg!("EMERGENCY");
-            self.throttle = -self.emergency_brake;
-            self.emergency = true;
+        let target_acceleration = (self.target_velocity.powf(2.0) - self.velocity.powf(2.0)) / (2.0 * (self.target_distance - 5.0));
+        // v^2 = u^2 + 2as
+        // a = (v^2 - u^2 / 2s)
+        if self.acceleration > target_acceleration {
+            if self.throttle == -self.max_brake {
+                self.throttle = -self.emergency_brake;
+                self.emergency = true;
+            }
+            else {
+                self.throttle = std::cmp::max(self.throttle - 10, -self.max_brake);
+            }
         }
-        else { // evaluate required amount of acceleration
-            //let 
-            let target_acceleration = (self.target_velocity.powf(2.0) - self.velocity.powf(2.0)) / (2.0 * (self.target_distance - 5.0));
-            // v^2 = u^2 + 2as
-            // a = (v^2 - u^2 / 2s)
-            if self.acceleration > target_acceleration {
-                if false{//self.throttle == -self.max_brake {
-                    dbg!(&self, target_acceleration);
-                    self.throttle = -self.emergency_brake;
-                    self.emergency = true;
-                }
-                else {
-                    self.throttle = std::cmp::max(self.throttle - 10, -self.max_brake);
-                }
-            }
-            else if self.acceleration < target_acceleration {
-                self.throttle = std::cmp::min(self.throttle + 10, self.max_throttle);
-            }
+        else if self.acceleration < target_acceleration {
+            self.throttle = std::cmp::min(self.throttle + 10, self.max_throttle);
         }
     }
 }
 
-impl std::fmt::Display for Train {
+impl <'a> std::fmt::Display for Train <'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Vel: {:>6.2}m/s : {:>6.2}mph | Pos {:>7.2}m | Acc {:>6.3} | Thr {:>4} | Target {:>8.2}m/s in {:>8.2}m", self.velocity, convert_to_mph(self.velocity), self.position, self.acceleration, self.throttle, self.target_velocity, self.target_distance)
+        write!(f, "Vel: {:>6.2}m/s : {:>6.2}mph | Target {:>8.2}m/s in {:>8.2}m | {}", self.velocity, convert_to_mph(self.velocity), self.target_velocity, self.target_distance, if self.emergency{"EMERGENCY"} else {"OK"})
     }
 }
