@@ -6,6 +6,7 @@ mod signaller;
 mod signal;
 mod io;
 mod block;
+mod platform;
 
 use crate::train::*;
 use crate::surface::*;
@@ -23,8 +24,8 @@ async fn main() {
     let term = Term::stdout();
 
     let r = Style::new().red();
-    let dy = Style::new().color256(172);
     let y = Style::new().yellow();
+    let dy = Style::new().color256(172);
     let g = Style::new().green();
 
 
@@ -73,13 +74,13 @@ async fn main() {
                     block::BlockType::Track { signal } => {
                         match signal.colour {
                             SignalColour::Red => colour = &r,
-                            SignalColour::DoubleYellow => colour = &dy,
                             SignalColour::Yellow => colour = &y,
+                            SignalColour::DoubleYellow => colour = &dy,
                             SignalColour::Green => colour = &g,
                         }
                     },
                     block::BlockType::Station { platforms } => {
-                        todo!();
+                        
                     },
                 }
     

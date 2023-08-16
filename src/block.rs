@@ -1,20 +1,6 @@
 use crate::{Owner, SignalColour, signal::Signal, conversion::convert_to_mps};
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
-pub struct Platform<'a> {
-    pub signal: Signal<'a>,
-    pub length: u32,
-    pub occupant: Option<&'a str>
-}
+use crate::platform::*;
 
-impl <'a> Platform<'a> {
-    pub fn new(signal: Signal<'a>, length: u32) -> Self {
-        Platform {
-            signal,
-            length,
-            occupant: None,
-        }
-    }
-}
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
 pub enum BlockType <'a> {
     Track { signal: Signal<'a> },

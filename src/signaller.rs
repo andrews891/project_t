@@ -50,11 +50,11 @@ impl <'a> Signaller <'a>{
                     match signal.colour {
                         SignalColour::Red => {
                             train.0.target_velocity = 0.0;
-                        }
-                        SignalColour::DoubleYellow => {
-                            train.0.target_velocity = 0.5 * (next_block.limit as f32);
                         },
                         SignalColour::Yellow => {
+                            train.0.target_velocity = 0.5 * (next_block.limit as f32);
+                        },
+                        SignalColour::DoubleYellow => {
                             train.0.target_velocity = 0.75 * (next_block.limit as f32);
                         },
                         SignalColour::Green => {
@@ -62,8 +62,21 @@ impl <'a> Signaller <'a>{
                         }, 
                     }
                 },
-                BlockType::Station { platforms,  } => {
-                    todo!();
+                BlockType::Station { platforms  } => {
+                    match platforms[0].signal.colour {
+                        SignalColour::Red => {
+                            train.0.target_velocity = 0.0;
+                        },
+                        SignalColour::Yellow => {
+                            train.0.target_velocity = 0.5 * (next_block.limit as f32);
+                        },
+                        SignalColour::DoubleYellow => {
+                            train.0.target_velocity = 0.75 * (next_block.limit as f32);
+                        },
+                        SignalColour::Green => {
+                            train.0.target_velocity = next_block.limit as f32;
+                        }, 
+                    }
                 },
             }
 
