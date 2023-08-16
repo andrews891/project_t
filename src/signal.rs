@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, hash::*};
+use std::{hash::{Hash, Hasher}};
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, PartialOrd, Ord)]
 pub enum SignalColour {
@@ -10,7 +10,7 @@ pub enum SignalColour {
 
 impl SignalColour {
     pub fn next(&self) -> Self {
-        use SignalColour::*;
+        use SignalColour::{DoubleYellow, Green, Red, Yellow};
         match *self {
             Red => Yellow,
             Yellow => DoubleYellow,
@@ -34,7 +34,7 @@ pub struct Signal<'a> {
 
 impl<'a> Signal <'a> {
     pub fn new() -> Self {
-        return Signal {
+        Signal {
             colour: SignalColour::Green,
             owner: Owner::Signaller,
         }
@@ -77,15 +77,13 @@ impl<'a> Signal <'a> {
                             self.colour = colour;
                             colour != SignalColour::Green
                         }
+                        else if self.colour > colour {
+                            self.owner = owner;
+                            self.colour = colour;
+                            colour != SignalColour::Green
+                        }
                         else {
-                            if self.colour > colour {
-                                self.owner = owner;
-                                self.colour = colour;
-                                colour != SignalColour::Green
-                            }
-                            else {
-                                false
-                            }
+                            false
                         }
                     },
                 }

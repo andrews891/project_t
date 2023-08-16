@@ -1,5 +1,5 @@
-use crate::{Owner, SignalColour, signal::Signal, conversion::convert_to_mps};
-use crate::platform::*;
+use crate::{signal::Signal, conversion::convert_to_mps};
+use crate::platform::Platform;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
 pub enum BlockType <'a> {
@@ -38,7 +38,7 @@ impl <'a> Block <'a> {
 
     pub fn add_platform(&mut self, platform: Platform<'a>) {
         match &mut self.block_type {
-            BlockType::Track { signal } => {
+            BlockType::Track { signal: _ } => {
                 panic!("CANNOT ADD PLATFORM TO TRACK");
             },
             BlockType::Station { platforms } => {

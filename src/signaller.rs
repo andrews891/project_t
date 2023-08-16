@@ -1,12 +1,12 @@
 use petgraph::Direction::Incoming;
 use petgraph::Direction::Outgoing;
 use petgraph::graphmap::DiGraphMap;
-use crate::train::*;
-use crate::signal::*;
-use crate::block::*;
+use crate::train::Train;
+use crate::signal::{Owner, SignalColour};
+use crate::block::{Block, BlockType};
 use rayon::prelude::*;
 use std::sync::{Arc, Mutex};
-use crate::conversion::*;
+
 
 #[derive(Debug)]
 pub struct Signaller <'a> {
@@ -24,18 +24,18 @@ pub struct Signaller <'a> {
 impl <'a> Signaller <'a>{
     pub fn new(network: DiGraphMap<&'a str, Arc<Mutex<Block<'a>>>>, trains: Vec<(Train<'a>, &'a str, &'a str, &'a str, Vec<(&'a str, usize, u32)>)>) -> Self {
         let signaller = Signaller {
-            network: network,
-            trains: trains,
+            network,
+            trains,
         };
 
         signaller.trains.iter().for_each(|train| {
             signaller.propagate_signal(train.1, Owner::Train{ id: train.0.name }, SignalColour::Red);
         });
 
-        return signaller;
+        signaller
     }
 
-    pub fn update(&mut self, delta_time: f32, clock_time: f32) {
+    pub fn update(&mut self, delta_time: f32, _clock_time: f32) {
         let updated_signals = Arc::new(Mutex::new(Vec::<(&str, &str)>::new()));
 
         self.trains.par_iter_mut().for_each(|train| {
@@ -112,7 +112,7 @@ impl <'a> Signaller <'a>{
                         self.propagate_signal(prev_block_id, owner, colour.next());
                     }
                 },
-                BlockType::Station { platforms } => {
+                BlockType::Station { platforms: _ } => {
                     todo!();
                 },
             }

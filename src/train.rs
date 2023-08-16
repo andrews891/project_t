@@ -1,4 +1,4 @@
-use crate::{conversion::*, GRAVITY};
+use crate::{conversion::convert_to_mph, GRAVITY};
 
 #[macro_export]
 macro_rules! class802 {
@@ -30,9 +30,9 @@ pub struct Train <'a> {
 
 impl <'a> Train <'a> {
     pub fn new(name: &'a str, mass: f32, power: u32, engines: u32, width: f32, height: f32, acceleration: f32) -> Self {
-        return Train {
-            name: name,
-            mass: mass,
+        Train {
+            name,
+            mass,
             power: power * engines,
             axle_resistance: 0.002 * mass * GRAVITY, // estimate of axle resistance (less than steel-steel)
             rolling_resistance: 0.0015 * mass * GRAVITY, // steel-steel rolling resistance is 0.1-0.2%
@@ -55,22 +55,20 @@ impl <'a> Train <'a> {
         if !self.emergency {
             self.control();
         }
-        else {
-            if self.velocity.abs() <= 0.1 {
-                self.emergency = false;
-                self.throttle = 0;
-            }
+        else if self.velocity.abs() <= 0.1 {
+            self.emergency = false;
+            self.throttle = 0;
         }
 
         let mut resistive_force = 0.0;
         
         resistive_force += self.axle_resistance;
         resistive_force += self.rolling_resistance;
-        resistive_force += self.air_resistance_coefficient * self.velocity.powf(2.0);
+        resistive_force += self.air_resistance_coefficient * self.velocity.powi(2);
 
-        let propulsion_force = (self.throttle / 100) as f32 * core::cmp::min(self.max_tractive_effort, (self.power as f32 / self.velocity.abs()) as u32) as f32;
+        let propulsion_force = f32::from(self.throttle / 100) * core::cmp::min(self.max_tractive_effort, (self.power as f32 / self.velocity.abs()) as u32) as f32;
 
-        let force = propulsion_force - (self.velocity.signum() * resistive_force);
+        let force = self.velocity.signum().mul_add(-resistive_force, propulsion_force);
 
         self.acceleration = force / self.mass;
 
@@ -79,7 +77,7 @@ impl <'a> Train <'a> {
     }
 
     fn control(&mut self) {
-        let target_acceleration = (self.target_velocity.powf(2.0) - self.velocity.powf(2.0)) / (2.0 * (self.target_distance - 5.0));
+        let target_acceleration = self.velocity.mul_add(-self.velocity, self.target_velocity.powi(2)) / (2.0 * (self.target_distance - 5.0));
         // v^2 = u^2 + 2as
         // a = (v^2 - u^2 / 2s)
         if self.acceleration > target_acceleration {

@@ -8,12 +8,12 @@ mod io;
 mod block;
 mod platform;
 
-use crate::train::*;
-use crate::surface::*;
-use crate::simulation::*;
-use crate::signal::*;
-use conversion::convert_to_mps;
-use tokio::{task, time};
+
+
+use crate::simulation::Simulation;
+
+
+use tokio::{time};
 use crate::signal::SignalColour;
 use console::{Term, Style};
 
@@ -57,13 +57,13 @@ async fn main() {
 
             term.clear_screen().unwrap();
 
-            term.write_line(&format!("Time: {:>9.2}s", time_elapsed)).unwrap();
+            term.write_line(&format!("Time: {time_elapsed:>9.2}s")).unwrap();
 
             let mut train_locations = Vec::<(&str, &str)>::new();
 
             for train in &simulation.signaller.trains {
                 term.write_line(&format!("{:>8} | {} |", train.0.name, train.0)).unwrap();
-                train_locations.push((&train.0.name, train.2));
+                train_locations.push(((train.0.name), train.2));
             }
     
             for block in simulation.signaller.network.all_edges() {
@@ -79,7 +79,7 @@ async fn main() {
                             SignalColour::Green => colour = &g,
                         }
                     },
-                    block::BlockType::Station { platforms } => {
+                    block::BlockType::Station { platforms: _ } => {
                         
                     },
                 }

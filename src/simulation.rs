@@ -1,7 +1,7 @@
-use crate::{train::*, signaller::*, signal::*, conversion::*, block::*};
+use crate::{train::Train, signaller::Signaller, signal::Signal, block::Block};
 use petgraph::prelude::DiGraphMap;
 use serde::{Serialize, Deserialize};
-use std::{collections::HashMap, fmt::Debug, sync::{Arc, Mutex}};
+use std::{fmt::Debug, sync::{Arc, Mutex}};
 
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -40,7 +40,7 @@ fn init_network<'a>() -> DiGraphMap::<&'a str, Arc<Mutex<Block<'a>>>> {
     network.add_edge("D", "E", Arc::new(Mutex::new(Block::new_track(4000, 125, Signal::new()))));
     network.add_edge("E", "F", Arc::new(Mutex::new(Block::new_track(4000, 125, Signal::new()))));
 
-    return network;
+    network
 }
 
 fn init_trains<'a>() -> Vec<(Train<'a>, &'a str, &'a str, &'a str, Vec<(&'a str, usize, u32)>)> {
@@ -48,5 +48,5 @@ fn init_trains<'a>() -> Vec<(Train<'a>, &'a str, &'a str, &'a str, Vec<(&'a str,
 
     trains.push((class802!("802"), "A", "B", "802", vec![("D", 1, 2000)]));
     
-    return trains;
+    trains
 }
