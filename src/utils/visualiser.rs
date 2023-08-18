@@ -1,7 +1,7 @@
 use console::{Term, Style};
 use crate::{
     infrastructure::{
-        signal::*, block::*
+        signal::SignalColour, block::{Block, BlockType}
     },
     control::driver::Driver
 };
@@ -18,7 +18,7 @@ pub struct Visualiser {
 
 impl Visualiser {
     pub fn new() -> Self {
-        Visualiser {
+        Self {
             term: Term::stdout(),
 
             r: Style::new().red(),
@@ -36,7 +36,7 @@ impl Visualiser {
         let mut train_locations = Vec::<(&str, &str)>::new();
 
         for driver in drivers {
-            self.term.write_line(&format!("{}", driver)).unwrap();
+            self.term.write_line(&format!("{driver}")).unwrap();
             train_locations.push(driver.status());
         }
 

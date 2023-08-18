@@ -4,9 +4,9 @@ use tokio::sync::{mpsc, broadcast};
 
 use crate::{
     infrastructure::{
-        signal::*, train::*
+        signal::SignalColour, train::Train
     },
-    control::message::*
+    control::message::{SignallerMessage, TrainMessage}
 };
 
 #[derive(Debug)]
@@ -32,11 +32,11 @@ impl <'a> Driver <'a> {
 
         driver.tx.blocking_send(TrainMessage::HelloWorld { train_id: driver.train.name, block_id: src }).unwrap();
 
-        return driver;
+        driver
     }
 
     pub fn status(&self) -> (&'a str, &'a str) {
-        return (self.train.name, self.dst)
+        (self.train.name, self.dst)
     }
 
     pub fn time_step(&mut self, delta_time: f32) {
@@ -76,7 +76,7 @@ impl <'a> Driver <'a> {
         self.train.target_distance = self.train.block_length - self.train.position;
 
         // update train position and set signals
-        if self.train.position > self.train.block_length as f32 {
+        if self.train.position > self.train.block_length {
             //todo: train pathfinding - handle with signaller tho
             self.tx.blocking_send(TrainMessage::ReserveNextBlock { train_id: self.train.name }).unwrap();
         }

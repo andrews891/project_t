@@ -31,7 +31,7 @@ const GRAVITY: f32 = 9.81;
 
 #[tokio::main]
 async fn main() {
-    let mut simulation = task::spawn_blocking(|| Simulation::new()).await.unwrap();
+    let mut simulation = task::spawn_blocking(Simulation::new).await.unwrap();
 
     let visualiser = Visualiser::new();
 

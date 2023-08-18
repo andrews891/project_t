@@ -1,12 +1,9 @@
 use crate::{
     infrastructure::{
-        signal::Signal, train::*, platform::*
-    },
-    control::{
-        driver::Driver, signaller::Signaller, message::*,
+        signal::Signal, platform::Platform
     },
     utils::{
-        conversion::*
+        conversion::convert_to_mps
     }
 };
 

@@ -9,7 +9,7 @@ pub struct BiHashMap<A, B> where A: Eq + Hash + Copy, B: Eq + Hash + Copy {
 
 impl <A, B> BiHashMap<A, B> where A: Eq + Hash + Copy, B: Eq + Hash + Copy {
     pub fn new() -> Self {
-        BiHashMap {
+        Self {
             map_a: HashMap::<A, B>::new(),
             map_b: HashMap::<B, A>::new()
         }

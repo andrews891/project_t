@@ -1,9 +1,9 @@
 use crate::{
     infrastructure::{
-        signal::Signal, block::Block, train::*
+        signal::Signal, block::Block, train::Train
     },
     control::{
-        driver::Driver, signaller::Signaller, message::*,
+        driver::Driver, signaller::Signaller, message::{SignallerMessage, TrainMessage},
     }
 };
 use petgraph::prelude::DiGraphMap;
@@ -67,5 +67,5 @@ fn init_drivers<'a>(tx: mpsc::Sender<TrainMessage<'a>>, rx: broadcast::Receiver<
     
     drivers.push(Driver::new(tx, rx, class802!("802"), "A", vec![("D", 1, 2000)]));
 
-    return drivers;
+    drivers
 }
