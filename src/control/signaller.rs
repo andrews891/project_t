@@ -4,17 +4,17 @@ use petgraph::graphmap::DiGraphMap;
 use tokio::sync::{broadcast, mpsc};
 use crate::{
     infrastructure::{
-        signal::*, block::*, train::*
+        signal::{Owner, SignalColour}, block::{Block, BlockType}
     },
     control::{
-        driver::Driver, message::*,
+        message::{SignallerMessage, TrainMessage},
     },
     utils::{
-        bihashmap::*
+        bihashmap::BiHashMap
     }
 };
 use rayon::prelude::*;
-use std::sync::MutexGuard;
+
 use std::sync::{Arc, Mutex};
 
 
@@ -77,17 +77,17 @@ impl <'a> Signaller <'a>{
         match &block.block_type {
             BlockType::Track { signal } => {
                 self.tx.send(SignallerMessage::UpdateBlock { 
-                    block_id: block_id, 
+                    block_id, 
                     colour: signal.colour,
                     limit: block.limit, 
                     length: block.length,
                 }).unwrap();
             },
-            BlockType::Station { platforms } => (),
+            BlockType::Station { platforms: _ } => (),
         }
     }
 
-    fn next_in_path(&self, train_id: &'a str, block_id: &'a str) -> &'a str { // signature needs changing back to train_id: &str only
+    fn next_in_path(&self, _train_id: &'a str, block_id: &'a str) -> &'a str { // signature needs changing back to train_id: &str only
         return self.network.edges_directed(block_id, Outgoing).next().unwrap().1
     }
 
