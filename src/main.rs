@@ -1,35 +1,39 @@
-#[macro_use] mod train;
-mod surface;
-mod conversion;
+mod utils {
+    pub mod surface;
+    pub mod conversion;
+    pub mod io;
+    pub mod visualiser;
+    pub mod bihashmap;
+}
+#[macro_use] mod infrastructure {
+    pub mod signal;
+    pub mod block;
+    pub mod platform;
+    #[macro_use] pub mod train;
+}
+mod control {
+    pub mod signaller;
+    pub mod driver;
+    pub mod message;
+}
 mod simulation;
-mod signaller;
-mod signal;
-mod io;
-mod block;
-mod platform;
 
 
 
-use crate::simulation::Simulation;
 
 
-use tokio::{time};
-use crate::signal::SignalColour;
-use console::{Term, Style};
+use crate::{simulation::Simulation};
+
+use crate::utils::visualiser::Visualiser;
+use tokio::{time, task};
 
 const GRAVITY: f32 = 9.81;
 
 #[tokio::main]
 async fn main() {
-    let term = Term::stdout();
+    let mut simulation = task::spawn_blocking(|| Simulation::new()).await.unwrap();
 
-    let r = Style::new().red();
-    let y = Style::new().yellow();
-    let dy = Style::new().color256(172);
-    let g = Style::new().green();
-
-
-    let mut simulation = Simulation::new();
+    let visualiser = Visualiser::new();
 
     dbg!();
 
@@ -50,54 +54,17 @@ async fn main() {
 
         interval.tick().await;
 
-        simulation.time_step(time_step, time_elapsed);
+        simulation.time_step(time_step).await;
 
         if ticks == speedup as u32 {
+            visualiser.update(time_elapsed, &simulation.drivers, &simulation.signaller.network);
             ticks = 0;
-
-            term.clear_screen().unwrap();
-
-            term.write_line(&format!("Time: {time_elapsed:>9.2}s")).unwrap();
-
-            let mut train_locations = Vec::<(&str, &str)>::new();
-
-            for train in &simulation.signaller.trains {
-                term.write_line(&format!("{:>8} | {} |", train.0.name, train.0)).unwrap();
-                train_locations.push(((train.0.name), train.2));
-            }
-    
-            for block in simulation.signaller.network.all_edges() {
-                let mut colour: &Style = &r;
-                let mut train: &str = "";
-                
-                match &block.2.lock().unwrap().block_type {
-                    block::BlockType::Track { signal } => {
-                        match signal.colour {
-                            SignalColour::Red => colour = &r,
-                            SignalColour::Yellow => colour = &y,
-                            SignalColour::DoubleYellow => colour = &dy,
-                            SignalColour::Green => colour = &g,
-                        }
-                    },
-                    block::BlockType::Station { platforms: _ } => {
-                        
-                    },
-                }
-    
-                for loc in &train_locations {
-                    if loc.1 == block.1 {
-                        train = loc.0;
-                    }
-                }
-    
-                term.write_str(&format!("{:>7} {} ", train, colour.apply_to(block.1))).unwrap();
-            }
         }
         
         time_elapsed += time_step;
     }
 
-
+    println!("Done");
 }
 
 

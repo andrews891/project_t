@@ -1,4 +1,4 @@
-use crate::signal::Signal;
+use crate::infrastructure::signal::Signal;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
 pub struct Platform<'a> {

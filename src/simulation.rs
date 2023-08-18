@@ -1,7 +1,17 @@
-use crate::{train::Train, signaller::Signaller, signal::Signal, block::Block};
+use crate::{
+    infrastructure::{
+        signal::Signal, block::Block, train::*
+    },
+    control::{
+        driver::Driver, signaller::Signaller, message::*,
+    }
+};
 use petgraph::prelude::DiGraphMap;
+use rayon::prelude::*;
 use serde::{Serialize, Deserialize};
 use std::{fmt::Debug, sync::{Arc, Mutex}};
+use tokio::sync::{mpsc, broadcast};
+
 
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -14,18 +24,27 @@ struct YamlTrack {
 }
 #[derive(Debug)]
 pub struct Simulation <'a> {
-    pub signaller: Signaller <'a>
+    pub signaller: Signaller <'a>,
+    pub drivers: Vec<Driver<'a>>
 }
 
 impl <'a> Simulation <'a> {
     pub fn new() -> Self {
+        let (signaller_tx, train_rx) = broadcast::channel::<SignallerMessage>(100);
+        let (train_tx, signaller_rx) = mpsc::channel::<TrainMessage>(100);
+
         return Simulation {
-            signaller: Signaller::new(init_network(), init_trains())
+            signaller: Signaller::new(signaller_tx, signaller_rx, init_network()),
+            drivers: init_drivers(train_tx, train_rx)
         }
     }
 
-    pub fn time_step(&mut self, delta_time: f32, clock_time: f32) {
-        self.signaller.update(delta_time, clock_time);
+    pub async fn time_step(&mut self, delta_time: f32) {
+        self.signaller.update().await;
+        
+        self.drivers.par_iter_mut().for_each(|driver| {
+            driver.time_step(delta_time);
+        });
     }
 }
 
@@ -43,10 +62,10 @@ fn init_network<'a>() -> DiGraphMap::<&'a str, Arc<Mutex<Block<'a>>>> {
     network
 }
 
-fn init_trains<'a>() -> Vec<(Train<'a>, &'a str, &'a str, &'a str, Vec<(&'a str, usize, u32)>)> {
-    let mut trains = Vec::<(Train, &str, &str, &str, Vec<(&'a str, usize, u32)>)>::new();
-
-    trains.push((class802!("802"), "A", "B", "802", vec![("D", 1, 2000)]));
+fn init_drivers<'a>(tx: mpsc::Sender<TrainMessage<'a>>, rx: broadcast::Receiver<SignallerMessage<'a>>) -> Vec<Driver<'a>> {
+    let mut drivers = Vec::<Driver>::new();
     
-    trains
+    drivers.push(Driver::new(tx, rx, class802!("802"), "A", vec![("D", 1, 2000)]));
+
+    return drivers;
 }

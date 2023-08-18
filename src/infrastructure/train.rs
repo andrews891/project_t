@@ -1,4 +1,4 @@
-use crate::{conversion::convert_to_mph, GRAVITY};
+use crate::{utils::conversion::convert_to_mph, GRAVITY};
 
 #[macro_export]
 macro_rules! class802 {
@@ -22,6 +22,7 @@ pub struct Train <'a> {
     acceleration: f32,
     pub target_velocity: f32,
     pub target_distance: f32,
+    pub block_length: f32,
     max_throttle: i16,
     max_brake: i16,
     emergency_brake: i16,
@@ -44,6 +45,7 @@ impl <'a> Train <'a> {
             acceleration: 0.0,
             target_velocity: 0.0,
             target_distance: 0.0,
+            block_length: 0.0,
             max_throttle: 100,
             max_brake: 150,
             emergency_brake: 200,
