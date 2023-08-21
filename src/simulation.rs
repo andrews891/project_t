@@ -99,19 +99,14 @@ impl <'a> Simulation <'a> {
 
 fn init_network<'a>() -> DiGraphMap::<&'a str, Arc<Mutex<Block<'a>>>> {
     let mut network = DiGraphMap::<&str, Arc<Mutex<Block>>>::new();
-    
-    network.add_edge("Z", "A", Arc::new(Mutex::new(Block::new_track(8000, 50.0, Signal::new()))));
-    info!("added edge to network: {} -> {}", "Z", "A");
-    let mut last = 'A';
 
-    let mut j = 'A';
-
-    for i in 'B'..'Z' {
-        j = i;
-        network.add_edge(&last.to_string(), &j.to_string(), Arc::new(Mutex::new(Block::new_track(8000, 125.0, Signal::new()))));
-        info!("added edge to network: {} -> {}", last, i);
-        last = i;
-    }
+    network.add_edge("F", "A", Arc::new(Mutex::new(Block::new_track(4000, 125.0, Signal::new()))));
+    network.add_edge("A", "B", Arc::new(Mutex::new(Block::new_track(4000, 125.0, Signal::new()))));
+    network.add_edge("B", "C", Arc::new(Mutex::new(Block::new_track(4000, 60.0, Signal::new()))));
+    network.add_edge("C", "D", Arc::new(Mutex::new(Block::new_track(4000, 60.0, Signal::new()))));
+    //network.add_edge("C", "D", Arc::new(Mutex::new(Block::new_station(4000, 30, vec![Platform::new(Signal::new(), 1000)]))));
+    network.add_edge("D", "E", Arc::new(Mutex::new(Block::new_track(4000, 125.0, Signal::new()))));
+    network.add_edge("E", "F", Arc::new(Mutex::new(Block::new_track(4000, 125.0, Signal::new()))));
 
     network
 }

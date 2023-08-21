@@ -1,2 +1,10 @@
 [env]
 RUST_LOG = { value = "DEBUG", force = true }
+
+[alias]
+b = "build"
+c = "check"
+t = "test"
+r = "run"
+rr = "run --release"
+rl = "run --features logging"
