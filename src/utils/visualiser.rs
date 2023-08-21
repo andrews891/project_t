@@ -36,7 +36,7 @@ impl Visualiser {
         let mut train_locations = Vec::<(&str, &str)>::new();
 
         for driver in drivers {
-            self.term.write_line(&format!("{driver}")).unwrap();
+            self.term.write_line(&format!("{driver}{}", driver.dst)).unwrap();
             train_locations.push(driver.status());
         }
 

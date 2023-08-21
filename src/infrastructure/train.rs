@@ -1,4 +1,5 @@
 use crate::{utils::conversion::convert_to_mph, GRAVITY};
+use log::debug;
 
 #[macro_export]
 macro_rules! class802 {
@@ -68,7 +69,7 @@ impl <'a> Train <'a> {
         resistive_force += self.rolling_resistance;
         resistive_force += self.air_resistance_coefficient * self.velocity.powi(2);
 
-        let propulsion_force = f32::from(self.throttle / 100) * core::cmp::min(self.max_tractive_effort, (self.power as f32 / self.velocity.abs()) as u32) as f32;
+        let propulsion_force = (f32::from(self.throttle) / 100.0) * std::cmp::min(self.max_tractive_effort, (self.power as f32 / self.velocity.abs()) as u32) as f32;
 
         let force = self.velocity.signum().mul_add(-resistive_force, propulsion_force);
 
@@ -79,19 +80,24 @@ impl <'a> Train <'a> {
     }
 
     fn control(&mut self) {
+        debug!("control");
         let target_acceleration = self.velocity.mul_add(-self.velocity, self.target_velocity.powi(2)) / (2.0 * (self.target_distance - 5.0));
+        debug!("target acceleration {}", target_acceleration);
+        debug!("throttle {}", self.throttle);
         // v^2 = u^2 + 2as
         // a = (v^2 - u^2 / 2s)
         if self.acceleration > target_acceleration {
             if self.throttle == -self.max_brake {
-                self.throttle = -self.emergency_brake;
-                self.emergency = true;
+                if self.velocity > self.target_velocity + 1.0 {
+                    self.throttle = -self.emergency_brake;
+                    self.emergency = true;
+                }
             }
             else {
                 self.throttle = std::cmp::max(self.throttle - 10, -self.max_brake);
             }
         }
-        else if self.acceleration < target_acceleration {
+        else if self.acceleration <= target_acceleration {
             self.throttle = std::cmp::min(self.throttle + 10, self.max_throttle);
         }
     }
@@ -99,6 +105,6 @@ impl <'a> Train <'a> {
 
 impl <'a> std::fmt::Display for Train <'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Vel: {:>6.2}m/s : {:>6.2}mph | Target {:>8.2}m/s in {:>8.2}m | {}", self.velocity, convert_to_mph(self.velocity), self.target_velocity, self.target_distance, if self.emergency{"EMERGENCY"} else {"OK"})
+        write!(f, "Vel: {:>6.2}m/s : {:>6.2}mph | Target {:>8.2}mph in {:>8.2}m | {} | ", self.velocity, convert_to_mph(self.velocity), convert_to_mph(self.target_velocity), self.target_distance, if self.emergency{"EMERGENCY"} else {"OK"})
     }
 }

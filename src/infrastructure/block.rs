@@ -7,22 +7,22 @@ use crate::{
     }
 };
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
+#[derive(Debug)]
 pub enum BlockType <'a> {
     Track { signal: Signal<'a> },
     Station { platforms: Vec<Platform<'a>> }
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
+#[derive(Debug)]
 pub struct Block <'a> {
     pub length: u32,
-    pub limit: u32,
+    pub limit: f32,
     pub block_type: BlockType<'a>,
 }
 
 
 impl <'a> Block <'a> {
-    pub fn new_track(length: u32, limit: u32, signal: Signal<'a>,) -> Self {
+    pub fn new_track(length: u32, limit: f32, signal: Signal<'a>,) -> Self {
         Block {
             length,
             limit: convert_to_mps(limit),
@@ -32,7 +32,7 @@ impl <'a> Block <'a> {
         }
     }
 
-    pub fn new_station(length: u32, limit: u32, platforms: Vec<Platform<'a>>) -> Self {
+    pub fn new_station(length: u32, limit: f32, platforms: Vec<Platform<'a>>) -> Self {
         Block {
             length,
             limit: convert_to_mps(limit),
